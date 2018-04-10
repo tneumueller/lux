@@ -1,0 +1,16 @@
+{
+  "name": "lux",
+  "version": "0.0.1",
+  "description": "A modern JavaScript frontend framework",
+  "main": "index.js",
+  "scripts": {
+    "i": "lerna bootstrap",
+    "build": "lerna run build --scope packages/example"
+  },
+  "devDependencies": {
+    "lerna": "^2.10.1"
+  },
+  "author": "",
+  "license": "ISC",
+  "types": "./lib/main.d.ts"
+}
