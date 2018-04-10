@@ -13,6 +13,7 @@ export class LxRuntime {
         if (!appRoot) return
 
         boot.bindToElement(appRoot)
+        boot.init()
     }
 
     static bootstrap(_c: any): LxInstance {
