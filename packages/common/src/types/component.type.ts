@@ -40,39 +40,48 @@ function bindToElement(el: HTMLElement) {
 }
 
 function render() {
-    console.log(this)
     if (!this.__lx.props.templateData || !this.__lx.props.templateData.nodes) {
         return
     }
     this.__lx.props.templateData.nodes.forEach((node: Element) => {
-        this.__lx.props.htmlAnker.appendChild(createElement(node, this))
+        this.__lx.props.htmlAnker.appendChild(updateDOM(node, this))
     })
 }
 
-function createElement(node: Element, _this): HTMLElement {
-    const nodeElem = document.createElement(node.selector)
+function updateDOM(node: Element, _this): HTMLElement {
+    let nodeElem
+    let newInnerHTML = ''
 
-    console.log(node)
+    if (node.contentAnker) {
+        nodeElem = node.contentAnker
+    } else {
+        nodeElem = document.createElement(node.selector)
+        node.contentAnker = nodeElem
+    }
+
     if (!node.contentBindings && node.content) {
         nodeElem.innerHTML = node.content
     } else if (node.contentBindings) {
         node.contentBindings.forEach(binding => {
             if (binding.staticContent) {
-                nodeElem.innerHTML += binding.staticContent
+                newInnerHTML += binding.staticContent
             } else {
                 ({
                     ..._this,
                     __lx_eval_binding() {
-                        nodeElem.innerHTML += eval(binding.dynamicContent)
+                        newInnerHTML += eval(binding.dynamicContent)
                     }
                 }).__lx_eval_binding()
-                console.log(_this)
             }
         })
     }
+    if (nodeElem.innerHTML !== newInnerHTML) {
+        console.log(nodeElem.innerHTML, newInnerHTML)
+        nodeElem.innerHTML = newInnerHTML
+    }
 
     node.children.forEach(_n => {
-        nodeElem.appendChild(createElement(_n, _this))
+        nodeElem.appendChild(updateDOM(_n, _this))
     })
     return nodeElem
 }

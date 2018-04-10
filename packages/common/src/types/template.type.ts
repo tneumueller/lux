@@ -12,6 +12,7 @@ export interface Element {
     end: number
     children: Element[]
     content?: string
+    contentAnker?: HTMLElement
     contentBindings?: ContentBinding[]
 }
 
