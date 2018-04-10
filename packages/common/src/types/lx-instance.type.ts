@@ -1,9 +1,9 @@
-import { Object } from './object.type'
+import { LxObjectPrototype } from './object.type'
 
 export class LxInstance {
-    rootModule: Object
+    rootModule: LxObjectPrototype
 
-    constructor(rootModule: Object) {
+    constructor(rootModule: LxObjectPrototype) {
         this.rootModule = rootModule
     }
 }

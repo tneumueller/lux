@@ -6,8 +6,8 @@ export interface ModuleProperties {
 }
 
 export const Module = (props: ModuleProperties) => (target: any) => {
-    target.__lx = {
+    target.prototype.__lx = {
         type: ObjectType.Module
     }
-    target.props = props
+    target.prototype.__lx.props = props
 }

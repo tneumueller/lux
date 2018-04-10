@@ -21,10 +21,9 @@ export interface ContentBinding {
 }
 
 export class Template {
-    nodes: Element[] = []
+    public nodes: Element[] = []
 
     constructor(markup: string) {
-        //console.log('new template:', markup)
         this.parse(markup.trim())
     }
 

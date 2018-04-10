@@ -6,7 +6,7 @@ import { Component } from '../../../common/src/types/component.type'
     <div>
         <p>Test:</p>
         <div>
-            <p>Hallo, mein Name ist {{vorname}} {{ nachname}} und ich bin {{alter }} jahre alt.</p>
+            <p>Hallo, mein Name ist {{this.vorname}} {{ this.nachname}} und ich bin {{this.alter }} jahre alt.</p>
         </div>
     </div>
     <div>
@@ -16,4 +16,10 @@ import { Component } from '../../../common/src/types/component.type'
 `
 })
 export class TestComponent {
+    vorname = 'Thomas'
+    nachname = 'Neumüller'
+    alter = 20
+
+    constructor() {
+    }
 }
