@@ -5,6 +5,7 @@ interface Tag {
     closing: boolean
     content: string
     attributes?: Attribute[]
+    inputBindings?: Attribute[]
 }
 
 export interface Element {
@@ -16,6 +17,7 @@ export interface Element {
     contentAnker?: HTMLElement
     contentBindings?: ContentBinding[]
     attributes?: Attribute[]
+    inputBindings?: Attribute[]
 }
 
 interface Attribute {
@@ -108,7 +110,8 @@ export class Template {
                 end: openTag.end + 1,
                 children: [],
                 selector: openTag.content,
-                attributes: openTag.attributes
+                attributes: openTag.attributes,
+                inputBindings: openTag.inputBindings,
             }
         } else {
             const nextTag = this.findNextTag(s, openTag.end + 1)
@@ -125,7 +128,8 @@ export class Template {
                     children: [],
                     selector: openTag.content,
                     content: s.substr(openTag.end, nextTag.begin - openTag.end),
-                    attributes: openTag.attributes
+                    attributes: openTag.attributes,
+                    inputBindings: openTag.inputBindings,
                 }
             }
 
@@ -162,7 +166,8 @@ export class Template {
                 end: end + 1,
                 children,
                 selector: openTag.content,
-                attributes: openTag.attributes
+                attributes: openTag.attributes,
+                inputBindings: openTag.inputBindings,
             }
         }
     }
@@ -189,24 +194,40 @@ export class Template {
     }
 
     private getTagAttributes(tag: string) {
-        const attributes: Attribute[] = []
-        const regex = /([\w-]+)=["']/g
-        let m
-
-        while (m = regex.exec(tag)) {
-            if (m.index === regex.lastIndex) {
-                regex.lastIndex++
+        const attrs = {}
+        const attrGroups = [
+            {
+                name: 'attributes',
+                regex: /(([\w-]+))=["']/g
+            },
+            {
+                name: 'inputBindings',
+                regex: /(\[([\w-]+)\])=["']/g
             }
-            const attrValueStart = m.index + m[1].length + 1
-            const attrValueEnd = this.findClosingString(tag, attrValueStart)
-            const attrValue = tag.substr(attrValueStart + 1, attrValueEnd - attrValueStart - 1)
-            attributes.push({
-                key: m[1],
-                value: attrValue
-            })
-        }
+        ]
 
-        return { attributes }
+        attrGroups.forEach(group => {
+            const attributes: Attribute[] = []
+            let m
+
+            while (m = group.regex.exec(tag)) {
+                console.log(m)
+                if (m.index === group.regex.lastIndex) {
+                    group.regex.lastIndex++
+                }
+                const attrValueStart = m.index + m[1].length + 1
+                const attrValueEnd = this.findClosingString(tag, attrValueStart)
+                const attrValue = tag.substr(attrValueStart + 1, attrValueEnd - attrValueStart - 1)
+                attributes.push({
+                    key: m[2],
+                    value: attrValue
+                })
+            }
+
+            attrs[group.name] = attributes
+        })
+        console.log(attrs)
+        return attrs
     }
 
     private isTagSelfClosing(tag: string) {

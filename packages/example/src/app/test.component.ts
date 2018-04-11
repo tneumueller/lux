@@ -11,7 +11,7 @@ import { Component } from '../../../common/src/types/component.type'
     </div>
     <div>
         <p>Hallo</p>
-        <img src="http://www.horizont.net/news/media/15/Das-neue-Google-Logo-141300.jpeg" />
+        <img src="http://www.horizont.net/news/media/15/Das-neue-Google-Logo-141300.jpeg" width="50" [height]="this.alter" />
     </div>
 `
 })
