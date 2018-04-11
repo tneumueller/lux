@@ -1,6 +1,7 @@
 import { LxObjectInstance, LxObjectPrototype, ObjectType } from './object.type'
 import { Element, Template } from './template.type'
 import deepEqual from 'deep-equal'
+import { ComponentController } from './component-controller.type'
 
 export interface ComponentProperties {
     selector: string
@@ -25,6 +26,8 @@ export const Component = (props: ComponentProperties) => (target: any) => {
         _this.render.bind(_this)
         _this.detectChanges.bind(_this)
     }
+
+    ComponentController.registerComponent(target as LxObjectPrototype)
 }
 
 export interface LxComponent extends LxObjectInstance {
@@ -37,6 +40,12 @@ export interface LxComponent extends LxObjectInstance {
 
 function init() {
     this.__lx.props.templateData = new Template(this.__lx.props.template)
+
+    setInterval(() => {
+        if (this.detectChanges()) {
+            this.render()
+        }
+    }, 100)
 }
 
 function bindToElement(el: HTMLElement) {
@@ -67,12 +76,30 @@ function render() {
 function updateDOM(node: Element, _this): HTMLElement {
     let nodeElem
     let newInnerHTML = ''
+    let isComponent = false
 
     if (node.contentAnker) {
         nodeElem = node.contentAnker
+        console.log('reusing old elem', nodeElem)
     } else {
-        nodeElem = document.createElement(node.selector)
-        node.contentAnker = nodeElem
+        const comp = ComponentController.getComponentBySelector(node.selector) as any
+
+        if (!comp) {
+            nodeElem = document.createElement(node.selector)
+            node.contentAnker = nodeElem
+        } else {
+            console.log(`found component matching selector <${node.selector}>:`, comp)
+
+            const instance = new comp() as LxComponent
+            nodeElem = document.createElement(node.selector)
+            instance.bindAll(instance)
+            instance.bindToElement(nodeElem)
+            instance.init()
+
+            isComponent = true
+            node.contentAnker = instance.__lx.props.htmlAnker
+        }
+
 
         // when creating the element, add all fixed attributes
         applyAttributes(node)
@@ -81,27 +108,31 @@ function updateDOM(node: Element, _this): HTMLElement {
 
     applyInputBindings(_this, node)
 
-    if (!node.children || !node.children.length) {
-        if (!node.contentBindings && node.content) {
-            newInnerHTML = node.content
-        } else if (node.contentBindings) {
-            node.contentBindings.forEach(binding => {
-                if (binding.staticContent) {
-                    newInnerHTML += binding.staticContent
-                } else {
-                    newInnerHTML += evalBinding(_this, binding.dynamicContent)
-                }
+    if (!isComponent) {
+        if (!node.children || !node.children.length) {
+            if (!node.contentBindings && node.content) {
+                newInnerHTML = node.content
+            } else if (node.contentBindings) {
+                node.contentBindings.forEach(binding => {
+                    if (binding.staticContent) {
+                        newInnerHTML += binding.staticContent
+                    } else {
+                        newInnerHTML += evalBinding(_this, binding.dynamicContent)
+                    }
+                })
+            }
+            if (nodeElem.innerHTML !== newInnerHTML) {
+                // console.log(nodeElem.innerHTML, newInnerHTML)
+                nodeElem.innerHTML = newInnerHTML
+            }
+        } else {
+            node.children.forEach(_n => {
+                const domElem = updateDOM(_n, _this)
+                nodeElem.appendChild(domElem)
             })
         }
-        if (nodeElem.innerHTML !== newInnerHTML) {
-            // console.log(nodeElem.innerHTML, newInnerHTML)
-            nodeElem.innerHTML = newInnerHTML
-        }
-    } else {
-        node.children.forEach(_n => {
-            nodeElem.appendChild(updateDOM(_n, _this))
-        })
     }
+
     return nodeElem
 }
 

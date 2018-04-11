@@ -11,8 +11,9 @@ import { Component } from '../../../common/src/types/component.type'
     </div>
     <div>
         <p>Hallo</p>
-        <img src="http://www.horizont.net/news/media/15/Das-neue-Google-Logo-141300.jpeg" width="50" [height]="this.alter * 20" (click)="this.reset($event)" />
+        <img src="http://www.horizont.net/news/media/15/Das-neue-Google-Logo-141300.jpeg" width="50" [height]="this.height" (click)="this.reset($event)" />
     </div>
+    <app-user></app-user>
 `
 })
 export class TestComponent {
@@ -24,6 +25,10 @@ export class TestComponent {
         setInterval(() => {
             this.alter++
         }, 2000)
+    }
+
+    get height() {
+        return this.alter * 20
     }
 
     reset(e) {

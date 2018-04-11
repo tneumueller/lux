@@ -14,14 +14,7 @@ export class LxRuntime {
 
         boot.bindAll(boot)
         boot.bindToElement(appRoot)
-        boot.init(boot)
-
-        console.log('Boot:', boot)
-        setInterval(() => {
-            if (boot.detectChanges()) {
-                boot.render()
-            }
-        }, 100)
+        boot.init()
     }
 
     static bootstrap(_c: any): LxInstance {

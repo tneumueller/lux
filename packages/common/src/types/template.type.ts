@@ -117,7 +117,8 @@ export class Template {
                 outputBindings: openTag.outputBindings,
             }
         } else {
-            const nextTag = this.findNextTag(s, openTag.end + 1)
+            const nextTag = this.findNextTag(s, openTag.end)
+            console.log(nextTag)
             if (!nextTag) return null
             if (nextTag.closing) {
                 if (nextTag.content !== openTag.content) {
@@ -220,7 +221,6 @@ export class Template {
             let m
 
             while (m = group.regex.exec(tag)) {
-                console.log(m)
                 if (m.index === group.regex.lastIndex) {
                     group.regex.lastIndex++
                 }
@@ -235,7 +235,7 @@ export class Template {
 
             attrs[group.name] = attributes
         })
-        console.log(attrs)
+        // console.log(attrs)
         return attrs
     }
 
