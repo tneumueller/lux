@@ -76,6 +76,7 @@ function updateDOM(node: Element, _this): HTMLElement {
 
         // when creating the element, add all fixed attributes
         applyAttributes(node)
+        applyOutputBindings(_this, node)
     }
 
     applyInputBindings(_this, node)
@@ -120,11 +121,20 @@ function applyInputBindings(_this, node) {
     }
 }
 
+function applyOutputBindings(_this, node) {
+    if (node.outputBindings && node.outputBindings.length) {
+        node.outputBindings.forEach(attr => {
+            node.contentAnker[`on${attr.key}`] = ($event) => {
+                (window as any).$event = $event
+
+                evalBinding(_this, attr.value)
+
+                delete (window as any).$event
+            }
+        })
+    }
+}
+
 function evalBinding(_this, binding) {
-    return ({
-        ..._this,
-        __lx_eval_binding() {
-            return eval(binding)
-        }
-    }).__lx_eval_binding()
+    return function() { return eval(binding); }.call(_this);
 }

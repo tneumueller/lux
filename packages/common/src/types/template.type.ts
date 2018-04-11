@@ -6,6 +6,7 @@ interface Tag {
     content: string
     attributes?: Attribute[]
     inputBindings?: Attribute[]
+    outputBindings?: Attribute[]
 }
 
 export interface Element {
@@ -18,6 +19,7 @@ export interface Element {
     contentBindings?: ContentBinding[]
     attributes?: Attribute[]
     inputBindings?: Attribute[]
+    outputBindings?: Attribute[]
 }
 
 interface Attribute {
@@ -112,6 +114,7 @@ export class Template {
                 selector: openTag.content,
                 attributes: openTag.attributes,
                 inputBindings: openTag.inputBindings,
+                outputBindings: openTag.outputBindings,
             }
         } else {
             const nextTag = this.findNextTag(s, openTag.end + 1)
@@ -130,6 +133,7 @@ export class Template {
                     content: s.substr(openTag.end, nextTag.begin - openTag.end),
                     attributes: openTag.attributes,
                     inputBindings: openTag.inputBindings,
+                    outputBindings: openTag.outputBindings,
                 }
             }
 
@@ -168,6 +172,7 @@ export class Template {
                 selector: openTag.content,
                 attributes: openTag.attributes,
                 inputBindings: openTag.inputBindings,
+                outputBindings: openTag.outputBindings,
             }
         }
     }
@@ -203,6 +208,10 @@ export class Template {
             {
                 name: 'inputBindings',
                 regex: /(\[([\w-]+)\])=["']/g
+            },
+            {
+                name: 'outputBindings',
+                regex: /(\(([\w-]+)\))=["']/g
             }
         ]
 
