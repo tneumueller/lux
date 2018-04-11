@@ -75,12 +75,10 @@ function updateDOM(node: Element, _this): HTMLElement {
         node.contentAnker = nodeElem
 
         // when creating the element, add all fixed attributes
-        if (node.attributes && node.attributes.length) {
-            node.attributes.forEach(attr => {
-                nodeElem.setAttribute(attr.key, attr.value)
-            })
-        }
+        applyAttributes(node)
     }
+
+    applyInputBindings(_this, node)
 
     if (!node.children || !node.children.length) {
         if (!node.contentBindings && node.content) {
@@ -90,17 +88,12 @@ function updateDOM(node: Element, _this): HTMLElement {
                 if (binding.staticContent) {
                     newInnerHTML += binding.staticContent
                 } else {
-                    ({
-                        ..._this,
-                        __lx_eval_binding() {
-                            newInnerHTML += eval(binding.dynamicContent)
-                        }
-                    }).__lx_eval_binding()
+                    newInnerHTML += evalBinding(_this, binding.dynamicContent)
                 }
             })
         }
         if (nodeElem.innerHTML !== newInnerHTML) {
-            console.log(nodeElem.innerHTML, newInnerHTML)
+            // console.log(nodeElem.innerHTML, newInnerHTML)
             nodeElem.innerHTML = newInnerHTML
         }
     } else {
@@ -109,4 +102,29 @@ function updateDOM(node: Element, _this): HTMLElement {
         })
     }
     return nodeElem
+}
+
+function applyAttributes(node) {
+    if (node.attributes && node.attributes.length) {
+        node.attributes.forEach(attr => {
+            node.contentAnker.setAttribute(attr.key, attr.value)
+        })
+    }
+}
+
+function applyInputBindings(_this, node) {
+    if (node.inputBindings && node.inputBindings.length) {
+        node.inputBindings.forEach(attr => {
+            node.contentAnker.setAttribute(attr.key, evalBinding(_this, attr.value))
+        })
+    }
+}
+
+function evalBinding(_this, binding) {
+    return ({
+        ..._this,
+        __lx_eval_binding() {
+            return eval(binding)
+        }
+    }).__lx_eval_binding()
 }
