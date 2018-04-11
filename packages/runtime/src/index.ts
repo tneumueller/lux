@@ -16,7 +16,7 @@ export class LxRuntime {
         boot.bindToElement(appRoot)
         boot.init(boot)
 
-        console.log(boot)
+        console.log('Boot:', boot)
         setInterval(() => {
             boot.render()
         }, 100)

@@ -59,29 +59,31 @@ function updateDOM(node: Element, _this): HTMLElement {
         node.contentAnker = nodeElem
     }
 
-    if (!node.contentBindings && node.content) {
-        nodeElem.innerHTML = node.content
-    } else if (node.contentBindings) {
-        node.contentBindings.forEach(binding => {
-            if (binding.staticContent) {
-                newInnerHTML += binding.staticContent
-            } else {
-                ({
-                    ..._this,
-                    __lx_eval_binding() {
-                        newInnerHTML += eval(binding.dynamicContent)
-                    }
-                }).__lx_eval_binding()
-            }
+    if (!node.children || !node.children.length) {
+        if (!node.contentBindings && node.content) {
+            newInnerHTML = node.content
+        } else if (node.contentBindings) {
+            node.contentBindings.forEach(binding => {
+                if (binding.staticContent) {
+                    newInnerHTML += binding.staticContent
+                } else {
+                    ({
+                        ..._this,
+                        __lx_eval_binding() {
+                            newInnerHTML += eval(binding.dynamicContent)
+                        }
+                    }).__lx_eval_binding()
+                }
+            })
+        }
+        if (nodeElem.innerHTML !== newInnerHTML) {
+            console.log(nodeElem.innerHTML, newInnerHTML)
+            nodeElem.innerHTML = newInnerHTML
+        }
+    } else {
+        node.children.forEach(_n => {
+            nodeElem.appendChild(updateDOM(_n, _this))
         })
     }
-    if (nodeElem.innerHTML !== newInnerHTML) {
-        console.log(nodeElem.innerHTML, newInnerHTML)
-        nodeElem.innerHTML = newInnerHTML
-    }
-
-    node.children.forEach(_n => {
-        nodeElem.appendChild(updateDOM(_n, _this))
-    })
     return nodeElem
 }

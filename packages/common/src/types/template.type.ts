@@ -34,10 +34,10 @@ export class Template {
             this.nodes.push(elem)
             pos = elem.end
         }
-        console.log(this.nodes)
         this.nodes.forEach(node => {
             this.createBindings(node)
         })
+        console.log('Nodes:', this.nodes)
     }
 
     private createBindings(node: Element) {
@@ -70,7 +70,7 @@ export class Template {
                 })
             }
 
-            console.log(node.contentBindings)
+            // console.log('Bindings:', node.contentBindings)
 
         } else {
             node.children.forEach(_node => {
