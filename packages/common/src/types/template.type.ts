@@ -1,3 +1,5 @@
+import { LxObjectInstance } from './object.type'
+
 interface Tag {
     begin: number
     end: number
@@ -11,6 +13,7 @@ interface Tag {
 
 export interface Element {
     selector: string
+    component?: LxObjectInstance
     begin: number
     end: number
     children: Element[]

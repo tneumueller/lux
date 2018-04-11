@@ -76,11 +76,9 @@ function render() {
 function updateDOM(node: Element, _this): HTMLElement {
     let nodeElem
     let newInnerHTML = ''
-    let isComponent = false
 
     if (node.contentAnker) {
         nodeElem = node.contentAnker
-        console.log('reusing old elem', nodeElem)
     } else {
         const comp = ComponentController.getComponentBySelector(node.selector) as any
 
@@ -96,7 +94,7 @@ function updateDOM(node: Element, _this): HTMLElement {
             instance.bindToElement(nodeElem)
             instance.init()
 
-            isComponent = true
+            node.component = comp
             node.contentAnker = instance.__lx.props.htmlAnker
         }
 
@@ -108,7 +106,7 @@ function updateDOM(node: Element, _this): HTMLElement {
 
     applyInputBindings(_this, node)
 
-    if (!isComponent) {
+    if (!node.component) {
         if (!node.children || !node.children.length) {
             if (!node.contentBindings && node.content) {
                 newInnerHTML = node.content
