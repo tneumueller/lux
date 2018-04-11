@@ -1,5 +1,6 @@
 import { LxObjectInstance, LxObjectPrototype, ObjectType } from './object.type'
 import { Element, Template } from './template.type'
+import deepEqual from 'deep-equal'
 
 export interface ComponentProperties {
     selector: string
@@ -16,11 +17,13 @@ export const Component = (props: ComponentProperties) => (target: any) => {
     target.prototype.bindToElement = bindToElement
     target.prototype.init = init
     target.prototype.render = render
+    target.prototype.detectChanges = detectChanges
 
     target.prototype.bindAll = (_this: LxComponent) => {
         _this.bindToElement.bind(_this)
         _this.init.bind(_this)
         _this.render.bind(_this)
+        _this.detectChanges.bind(_this)
     }
 }
 
@@ -29,6 +32,7 @@ export interface LxComponent extends LxObjectInstance {
     bindToElement: Function
     init: Function
     render: Function
+    detectChanges: Function
 }
 
 function init() {
@@ -37,6 +41,18 @@ function init() {
 
 function bindToElement(el: HTMLElement) {
     this.__lx.props.htmlAnker = el
+}
+
+function detectChanges() {
+    if (!this.__lx.previousState) {
+        this.__lx.previousState = {...this}
+        return true
+    }
+    if (!deepEqual(this.__lx.previousState, {...this})) {
+        this.__lx.previousState = {...this}
+        return true
+    }
+    return false
 }
 
 function render() {

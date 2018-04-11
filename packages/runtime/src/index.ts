@@ -18,7 +18,9 @@ export class LxRuntime {
 
         console.log('Boot:', boot)
         setInterval(() => {
-            boot.render()
+            if (boot.detectChanges()) {
+                boot.render()
+            }
         }, 100)
     }
 

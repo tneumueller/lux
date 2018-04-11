@@ -18,8 +18,11 @@ import { Component } from '../../../common/src/types/component.type'
 export class TestComponent {
     vorname = 'Thomas'
     nachname = 'Neumüller'
-    alter = 20
+    alter = 1
 
     constructor() {
+        setInterval(() => {
+            this.alter++
+        }, 2000)
     }
 }
