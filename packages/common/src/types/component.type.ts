@@ -73,6 +73,13 @@ function updateDOM(node: Element, _this): HTMLElement {
     } else {
         nodeElem = document.createElement(node.selector)
         node.contentAnker = nodeElem
+
+        // when creating the element, add all fixed attributes
+        if (node.attributes && node.attributes.length) {
+            node.attributes.forEach(attr => {
+                nodeElem.setAttribute(attr.key, attr.value)
+            })
+        }
     }
 
     if (!node.children || !node.children.length) {

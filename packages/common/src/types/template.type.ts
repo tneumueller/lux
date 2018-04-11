@@ -4,6 +4,7 @@ interface Tag {
     selfClosing: boolean
     closing: boolean
     content: string
+    attributes?: Attribute[]
 }
 
 export interface Element {
@@ -14,6 +15,12 @@ export interface Element {
     content?: string
     contentAnker?: HTMLElement
     contentBindings?: ContentBinding[]
+    attributes?: Attribute[]
+}
+
+interface Attribute {
+    key: string
+    value: string
 }
 
 export interface ContentBinding {
@@ -89,27 +96,25 @@ export class Template {
         }
         if (start >= s.length) return null
 
-        const openTagEnd = this.findClosingBracket(s, start)
-        let openTag = s.substr(start, openTagEnd - start + 1)
-        if (this.isTagClosing(openTag)) return null
+        const openTag = this.findNextTag(s, start)
+        if (openTag.closing) return null
 
-        // console.log('open', openTag)
+        console.log('open', openTag)
 
-        if (this.isTagSelfClosing(openTag)) {
+        if (openTag.selfClosing) {
             //console.log('self-close', openTag)
             return {
                 begin: start,
-                end: openTagEnd + 1,
+                end: openTag.end + 1,
                 children: [],
-                selector: this.stripTag(openTag)
+                selector: openTag.content,
+                attributes: openTag.attributes
             }
         } else {
-            openTag = this.stripTag(openTag)
-
-            const nextTag = this.findNextTag(s, openTagEnd + 1)
+            const nextTag = this.findNextTag(s, openTag.end + 1)
             if (!nextTag) return null
             if (nextTag.closing) {
-                if (nextTag.content !== openTag) {
+                if (nextTag.content !== openTag.content) {
                     throw new Error(`Unexpected closing tag <${ nextTag.content }>`)
                 }
 
@@ -118,13 +123,14 @@ export class Template {
                     begin: start,
                     end: nextTag.end + 1,
                     children: [],
-                    selector: openTag,
-                    content: s.substr(openTagEnd + 1, nextTag.begin - (openTagEnd + 1))
+                    selector: openTag.content,
+                    content: s.substr(openTag.end, nextTag.begin - openTag.end),
+                    attributes: openTag.attributes
                 }
             }
 
             const children: Element[] = []
-            let pos = openTagEnd
+            let pos = openTag.end
             let end = -1
 
             while (true) {
@@ -137,7 +143,7 @@ export class Template {
                     const nextTag = this.findNextTag(s, pos)
 
                     if (nextTag && nextTag.closing) {
-                        if (nextTag.content !== openTag) {
+                        if (nextTag.content !== openTag.content) {
                             throw new Error(`Unexpected closing tag <${ nextTag.content }>`)
                         }
                         end = nextTag.end
@@ -155,7 +161,8 @@ export class Template {
                 begin: start,
                 end: end + 1,
                 children,
-                selector: openTag
+                selector: openTag.content,
+                attributes: openTag.attributes
             }
         }
     }
@@ -167,16 +174,39 @@ export class Template {
                 // tag opens here
                 const end = this.findClosingBracket(s, i) + 1
                 const tag = s.substr(i, end - i)
+                const closing = this.isTagClosing(tag)
                 return {
                     begin: i,
                     end,
                     selfClosing: this.isTagSelfClosing(tag),
-                    closing: this.isTagClosing(tag),
-                    content: this.stripTag(tag.trim()).trim()
+                    closing,
+                    content: this.stripTag(tag.trim()).trim(),
+                    ...(closing ? {} : this.getTagAttributes(tag.trim()))
                 }
             }
         }
         return null
+    }
+
+    private getTagAttributes(tag: string) {
+        const attributes: Attribute[] = []
+        const regex = /([\w-]+)=["']/g
+        let m
+
+        while (m = regex.exec(tag)) {
+            if (m.index === regex.lastIndex) {
+                regex.lastIndex++
+            }
+            const attrValueStart = m.index + m[1].length + 1
+            const attrValueEnd = this.findClosingString(tag, attrValueStart)
+            const attrValue = tag.substr(attrValueStart + 1, attrValueEnd - attrValueStart - 1)
+            attributes.push({
+                key: m[1],
+                value: attrValue
+            })
+        }
+
+        return { attributes }
     }
 
     private isTagSelfClosing(tag: string) {
@@ -229,6 +259,36 @@ export class Template {
             else if (c === closingBracket) bracketLevel--
 
             if (bracketLevel <= 0) {
+                return i
+            }
+        }
+        return -1
+    }
+
+    private findClosingString(s: string, start: number) {
+        const stack: string[] = []
+        for (let i = start; i < s.length; ++i) {
+            const c = s.substr(i, 1)
+            switch (c) {
+                case '\\':
+                    i++
+                    break
+                case '\'':
+                case '"':
+                case '`':
+                    if (stack[stack.length - 1] === c) {
+                        stack.pop()
+                    } else {
+                        stack.push(c)
+                    }
+                    break
+                case '$':
+                    if (stack[stack.length - 1] === '`' && s.substr(i, 2) === '${') {
+                        i = this.findClosingBracket(s, i + 1)
+                    }
+                    break
+            }
+            if (stack.length < 1) {
                 return i
             }
         }
