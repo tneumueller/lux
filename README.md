@@ -90,7 +90,7 @@ And you're good to go!
 
 Components are created by giving a class the `@Component` decorator. The decorator takes an object as parameter, which can
 have the following keys:
-```json
+```javascript
     {
         selector: string,
         template: string,
@@ -116,7 +116,7 @@ you can specify more options regarding the input binding:
 ```
 
 The object can have the following keys:
-```json
+```javascript
 {
     max: number // specifies the amount of new values this binding can consume. If the value of the input has been changed max times, it will not accept any more new values.
 }
