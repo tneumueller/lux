@@ -13,7 +13,7 @@ import { Component } from '../../../common/src/types/component.type'
         <p>Hallo</p>
         <img src="http://www.horizont.net/news/media/15/Das-neue-Google-Logo-141300.jpeg" width="50" [height]="this.height" (click)="this.reset($event)" />
     </div>
-    <app-user></app-user>
+    <app-user [vorname]="'Thomas'"></app-user>
 `
 })
 export class TestComponent {

@@ -1,4 +1,4 @@
-import { LxObjectInstance, LxObjectPrototype, ObjectType } from './object.type'
+import { LxObjectInput, LxObjectInstance, LxObjectPrototype, ObjectType } from './object.type'
 import { Element, Template } from './template.type'
 import deepEqual from 'deep-equal'
 import { ComponentController } from './component-controller.type'
@@ -10,9 +10,14 @@ export interface ComponentProperties {
 }
 
 export const Component = (props: ComponentProperties) => (target: any) => {
+    if (!target.prototype.__lx) {
+        target.prototype.__lx = {}
+    }
     target.prototype.__lx = {
+        ...target.prototype.__lx,
         type: ObjectType.Component,
-        props: props
+        props: props,
+        input: {}
     }
 
     target.prototype.bindToElement = bindToElement
@@ -40,6 +45,7 @@ export interface LxComponent extends LxObjectInstance {
 
 function init() {
     this.__lx.props.templateData = new Template(this.__lx.props.template)
+    console.log(this)
 
     setInterval(() => {
         if (this.detectChanges()) {
@@ -53,12 +59,22 @@ function bindToElement(el: HTMLElement) {
 }
 
 function detectChanges() {
+    const pureThis = {
+        ...this
+    }
+    for (let i in this.__lx.input) {
+        if (this.__lx.input.hasOwnProperty(i)) {
+            pureThis[i] = this.__lx.input[i].value
+        }
+    }
+
+
     if (!this.__lx.previousState) {
-        this.__lx.previousState = {...this}
+        this.__lx.previousState = pureThis
         return true
     }
-    if (!deepEqual(this.__lx.previousState, {...this})) {
-        this.__lx.previousState = {...this}
+    if (!deepEqual(this.__lx.previousState, pureThis)) {
+        this.__lx.previousState = pureThis
         return true
     }
     return false
@@ -94,7 +110,7 @@ function updateDOM(node: Element, _this): HTMLElement {
             instance.bindToElement(nodeElem)
             instance.init()
 
-            node.component = comp
+            node.component = instance
             node.contentAnker = instance.__lx.props.htmlAnker
         }
 
@@ -142,10 +158,14 @@ function applyAttributes(node) {
     }
 }
 
-function applyInputBindings(_this, node) {
+function applyInputBindings(_this, node: Element) {
     if (node.inputBindings && node.inputBindings.length) {
         node.inputBindings.forEach(attr => {
-            node.contentAnker.setAttribute(attr.key, evalBinding(_this, attr.value))
+            if (node.component && node.component.__lx.input[attr.key]) {
+                (node.component.__lx.input[attr.key] as LxObjectInput).value = evalBinding(_this, attr.value)
+            } else {
+                node.contentAnker.setAttribute(attr.key, evalBinding(_this, attr.value))
+            }
         })
     }
 }
@@ -153,13 +173,13 @@ function applyInputBindings(_this, node) {
 function applyOutputBindings(_this, node) {
     if (node.outputBindings && node.outputBindings.length) {
         node.outputBindings.forEach(attr => {
-            node.contentAnker[`on${attr.key}`] = ($event) => {
+            node.contentAnker.addEventListener(attr.key, $event => {
                 (window as any).$event = $event
 
                 evalBinding(_this, attr.value)
 
                 delete (window as any).$event
-            }
+            })
         })
     }
 }

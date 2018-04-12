@@ -11,7 +11,14 @@ export interface LxObjectInstance {
 export interface LxObjectData {
     type: ObjectType
     props?: any
+    input?: {
+        [key: string]: LxObjectInput
+    }
     previousState?: any
+}
+
+export interface LxObjectInput {
+    value: any
 }
 
 export enum ObjectType {
