@@ -1,7 +1,8 @@
-import { LxObjectInput, LxObjectInstance, LxObjectPrototype, ObjectType } from './object.type'
+import { LxObjectBinding, LxObjectInstance, LxObjectPrototype, ObjectType } from './object.type'
 import { Element, Template } from './template.type'
 import deepEqual from 'deep-equal'
 import { ComponentController } from './component-controller.type'
+import { take } from 'rxjs/operators'
 
 export interface ComponentProperties {
     selector: string
@@ -17,7 +18,8 @@ export const Component = (props: ComponentProperties) => (target: any) => {
         ...target.prototype.__lx,
         type: ObjectType.Component,
         props: props,
-        input: {}
+        input: {},
+        output: {}
     }
 
     target.prototype.bindToElement = bindToElement
@@ -117,6 +119,7 @@ function updateDOM(node: Element, _this): HTMLElement {
 
         // when creating the element, add all fixed attributes
         applyAttributes(node)
+        applyEventBindings(_this, node)
         applyOutputBindings(_this, node)
     }
 
@@ -162,7 +165,7 @@ function applyInputBindings(_this, node: Element) {
     if (node.inputBindings && node.inputBindings.length) {
         node.inputBindings.forEach(attr => {
             if (node.component && node.component.__lx.input[attr.key]) {
-                const binding = node.component.__lx.input[attr.key] as LxObjectInput
+                const binding = node.component.__lx.input[attr.key] as LxObjectBinding
                 if (binding.max === undefined || binding.max > 0) {
                     binding.value = evalBinding(_this, attr.value)
                     binding.max--
@@ -177,11 +180,29 @@ function applyInputBindings(_this, node: Element) {
 function applyOutputBindings(_this, node) {
     if (node.outputBindings && node.outputBindings.length) {
         node.outputBindings.forEach(attr => {
-            node.contentAnker.addEventListener(attr.key, $event => {
+            if (node.component && node.component.__lx.output[attr.key]) {
+                const binding = node.component.__lx.output[attr.key] as LxObjectBinding
+                let observable = binding.observable
+                if (binding.max !== undefined) {
+                    observable = observable.pipe(take(binding.max))
+                }
+                observable.subscribe(val => {
+                    evalBinding(_this, `(${attr.value})=${val}`)
+                })
+            }
+        })
+    }
+}
+
+function applyEventBindings(_this, node) {
+    if (node.eventBindings && node.eventBindings.length) {
+        node.eventBindings.forEach(attr => {
+            node.contentAnker.addEventListener(attr.key, ($event: any) => {
+                if ($event.detail && $event.detail.isLxEvent) {
+                    $event = $event.detail.data
+                }
                 (window as any).$event = $event
-
                 evalBinding(_this, attr.value)
-
                 delete (window as any).$event
             })
         })
@@ -189,5 +210,7 @@ function applyOutputBindings(_this, node) {
 }
 
 function evalBinding(_this, binding) {
-    return function() { return eval(binding); }.call(_this);
+    return function () {
+        return eval(binding)
+    }.call(_this)
 }

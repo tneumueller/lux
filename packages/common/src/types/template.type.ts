@@ -9,6 +9,7 @@ interface Tag {
     attributes?: Attribute[]
     inputBindings?: Attribute[]
     outputBindings?: Attribute[]
+    eventBindings?: Attribute[]
 }
 
 export interface Element {
@@ -23,6 +24,7 @@ export interface Element {
     attributes?: Attribute[]
     inputBindings?: Attribute[]
     outputBindings?: Attribute[]
+    eventBindings?: Attribute[]
 }
 
 interface Attribute {
@@ -118,6 +120,7 @@ export class Template {
                 attributes: openTag.attributes,
                 inputBindings: openTag.inputBindings,
                 outputBindings: openTag.outputBindings,
+                eventBindings: openTag.eventBindings,
             }
         } else {
             const nextTag = this.findNextTag(s, openTag.end)
@@ -138,6 +141,7 @@ export class Template {
                     attributes: openTag.attributes,
                     inputBindings: openTag.inputBindings,
                     outputBindings: openTag.outputBindings,
+                    eventBindings: openTag.eventBindings,
                 }
             }
 
@@ -177,6 +181,7 @@ export class Template {
                 attributes: openTag.attributes,
                 inputBindings: openTag.inputBindings,
                 outputBindings: openTag.outputBindings,
+                eventBindings: openTag.eventBindings,
             }
         }
     }
@@ -216,6 +221,10 @@ export class Template {
             {
                 name: 'outputBindings',
                 regex: /(\(([\w-]+)\))=["']/g
+            },
+            {
+                name: 'eventBindings',
+                regex: /(@([\w-]+))=["']/g
             }
         ]
 

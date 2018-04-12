@@ -1,27 +1,31 @@
 import { LxObjectBinding } from './object.type'
+import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 
-export const Input = (props?: LxObjectBinding | number): any => (targetClass: any, targetName: string) => {
+export const Output = (props?: LxObjectBinding | number): any => (targetClass: any, targetName: string) => {
+    const subject = new BehaviorSubject<any>(null)
     const defaultValue: LxObjectBinding = {
         value: undefined,
+        observable: subject.asObservable(),
         ...getProps(props)
     }
 
     function getter() {
-        if (!this.__lx.input[targetName]) {
-            this.__lx.input[targetName] = defaultValue
+        if (!this.__lx.output[targetName]) {
+            this.__lx.output[targetName] = defaultValue
         }
-        return this.__lx.input[targetName].value
+        return this.__lx.output[targetName].value
     }
 
     function setter(v: any) {
-        if (!this.__lx.input[targetName]) {
-            this.__lx.input[targetName] = {
+        if (!this.__lx.output[targetName]) {
+            this.__lx.output[targetName] = {
                 ...defaultValue,
                 value: v
             }
         } else {
-            throw new Error('Cannot set value of input binding')
+            this.__lx.output[targetName].value = v
         }
+        subject.next(v)
     }
 
     Object.defineProperty(targetClass, targetName, {
@@ -41,6 +45,6 @@ function getProps(props: LxObjectBinding | number): LxObjectBinding {
     } else if (type === 'number') {
         return { max: props as number }
     } else {
-        throw new Error(`Invalid input property type ${type} - must be either number or object`)
+        throw new Error(`Invalid output property type ${type} - must be either number or object`)
     }
 }
