@@ -18,7 +18,8 @@ export interface LxObjectData {
 }
 
 export interface LxObjectInput {
-    value: any
+    value?: any
+    max?: number
 }
 
 export enum ObjectType {

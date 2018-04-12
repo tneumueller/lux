@@ -11,7 +11,7 @@ import { Input } from '../../../common/src/types/input.type'
 })
 export class UserComponent {
     @Input() vorname: string
-    @Input() nachname: string
+    @Input(1) nachname: string
     @Input() alter = 10
 
     constructor() {

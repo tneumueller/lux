@@ -162,7 +162,11 @@ function applyInputBindings(_this, node: Element) {
     if (node.inputBindings && node.inputBindings.length) {
         node.inputBindings.forEach(attr => {
             if (node.component && node.component.__lx.input[attr.key]) {
-                (node.component.__lx.input[attr.key] as LxObjectInput).value = evalBinding(_this, attr.value)
+                const binding = node.component.__lx.input[attr.key] as LxObjectInput
+                if (binding.max === undefined || binding.max > 0) {
+                    binding.value = evalBinding(_this, attr.value)
+                    binding.max--
+                }
             } else {
                 node.contentAnker.setAttribute(attr.key, evalBinding(_this, attr.value))
             }
